@@ -1,0 +1,90 @@
+#!/usr/bin/env php
+<?php
+
+/*
+php oc fix - Fix project
+php oc fix bd - Fix project with database dump
+php oc up - Restore project
+php oc up bd - Restore project with database dump
+php oc up bd hard - hard reset and restore project
+*/
+
+class OC
+{
+    public $settings = [
+            'dbname' => 'xxx',
+            'dbuser' => 'xxx',
+            'dbpass' => 'xxx',
+            'branch' => 'xxx'
+    ];
+    public $action, $options;
+
+    public function __construct($argv){
+        $this->action = $argv[1];
+        unset($argv[0]);
+        unset($argv[1]);
+        $this->options = array_values($argv);
+        $this->{$this->action}();
+    }
+
+    public function fix()
+    {
+        echo "Project fix started\n";
+        $dbname = $this->settings['dbname'];
+        $dbpass = $this->settings['dbpass'];
+        $dbuser = $this->settings['dbuser'];
+        $branch = $this->settings['branch'];
+        `sudo chmod -R 777 *`;
+        if($this->options[0] == 'db') {
+            echo "Database dumping\n";
+            `mysqldump -u$dbuser -p$dbpass $dbname 2>/dev/null | gzip > ./storage/dump.sql.gz`;
+            echo "Database dumping complite\n";
+        }
+        `git add .`;
+        `git commit -m 'fix'`;
+        `git push origin $branch`;
+        echo "Project fixed\n";
+    }
+    public function up()
+    {
+        echo "Project restore started\n";
+        $dbname = $this->settings['dbname'];
+        $dbpass = $this->settings['dbpass'];
+        $dbuser = $this->settings['dbuser'];
+        $branch = $this->settings['branch'];
+        if($this->options[0] == 'hard' || $this->options[1] == 'hard'){
+            `git fetch --all;git reset --hard origin/$branch;`;
+        }
+
+        `sudo chmod -R 777 *`;
+        `git pull origin $branch`;
+        if($this->options[0] == 'db'){
+            echo "Database restore started\n";
+            `gunzip -c ./storage/dump.sql.gz | mysql -u$dbuser -p$dbpass $dbname 2>/dev/null`;
+            echo "Database restored!\n";
+        }
+        `sudo chmod -R 777 *`;
+    }
+    public function check()
+    {
+        echo "Check project problems started\n";
+        $folders = [
+            '/storage/cms/cache',
+            '/storage/cms/combiner',
+            '/storage/cms/combiner/assets',
+            '/storage/cms/twig',
+            '/storage/framework/cache',
+            '/storage/framework/sessions',
+            '/storage/framework/views',
+        ];
+
+        foreach ($folders as $folder){
+            if(!file_exists(__DIR__.$folder)){
+                mkdir(__DIR__.$folder);
+                echo "Create directory: $folder\n";
+            }
+        }
+        `sudo chmod -R 777 *`;
+    }
+}
+new OC($argv);
