@@ -35,7 +35,7 @@ class OC
         $dbuser = $this->settings['dbuser'];
         $branch = $this->settings['branch'];
         `sudo chmod -R 777 *`;
-        if($this->options[0] == 'db') {
+        if(@$this->options[0] == 'db') {
             echo "Database dumping\n";
             `mysqldump -u$dbuser -p$dbpass $dbname 2>/dev/null | gzip > ./storage/dump.sql.gz`;
             echo "Database dumping complite\n";
@@ -48,17 +48,17 @@ class OC
     public function up()
     {
         echo "Project restore started\n";
+        `sudo chmod -R 777 *`;
         $dbname = $this->settings['dbname'];
         $dbpass = $this->settings['dbpass'];
         $dbuser = $this->settings['dbuser'];
         $branch = $this->settings['branch'];
-        if($this->options[0] == 'hard' || $this->options[1] == 'hard'){
+        if(@$this->options[0] == 'hard' || @$this->options[1] == 'hard'){
             `git fetch --all;git reset --hard origin/$branch;`;
         }
 
-        `sudo chmod -R 777 *`;
         `git pull origin $branch`;
-        if($this->options[0] == 'db'){
+        if(@$this->options[0] == 'db'){
             echo "Database restore started\n";
             `gunzip -c ./storage/dump.sql.gz | mysql -u$dbuser -p$dbpass $dbname 2>/dev/null`;
             echo "Database restored!\n";
