@@ -69,6 +69,10 @@ class OC
     {
         echo "Check project problems started\n";
         $folders = [
+           '/storage/app',
+            '/storage/app/media',
+            '/storage/app/uploads',
+            '/storage/app/uploads/public',
             '/storage/cms/cache',
             '/storage/cms/combiner',
             '/storage/cms/combiner/assets',
